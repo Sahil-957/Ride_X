@@ -101,6 +101,8 @@ public class Booking {
     public Instant getCancelledAt() { return cancelledAt; }
     public Role getCancelledBy() { return cancelledBy; }
 
+    /** Keeps the in-memory inverse side in sync after saving a new payment. */
+    public void setPayment(Payment payment) { this.payment = payment; }
     public void setDriver(DriverProfile driver) { this.driver = driver; }
     public void setStatus(BookingStatus status) { this.status = status; }
     public void setRequestedAt(Instant requestedAt) { this.requestedAt = requestedAt; }

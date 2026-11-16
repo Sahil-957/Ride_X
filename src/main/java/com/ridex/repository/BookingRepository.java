@@ -58,15 +58,20 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             where b.id = :id and b.status = :requested""")
     int accept(Long id, DriverProfile driver, Instant now, BookingStatus requested, BookingStatus accepted);
 
+    @EntityGraph(attributePaths = {"passenger", "driver", "driver.user", "driver.vehicle", "payment", "rating"})
+    List<Booking> findByIdIn(Collection<Long> ids);
+
+    long countByDriver_UserIdAndStatus(Long driverId, BookingStatus status);
+
     /** Open requests near a driver, nearest pickup first, skipping ones this driver declined. */
     @Query(value = """
-            select b.* from bookings b
+            select b.id from bookings b
             where b.status = 'REQUESTED'
               and distance_km(b.pickup_lat, b.pickup_lng, :lat, :lng) <= :radiusKm
               and not exists (select 1 from booking_rejections r where r.booking_id = b.id and r.driver_id = :driverId)
             order by distance_km(b.pickup_lat, b.pickup_lng, :lat, :lng)
             limit 10""", nativeQuery = true)
-    List<Booking> findOpenRequestsNear(Long driverId, double lat, double lng, double radiusKm);
+    List<Long> findOpenRequestIdsNear(Long driverId, double lat, double lng, double radiusKm);
 
     @Modifying
     @Query(value = "insert into booking_rejections (booking_id, driver_id) values (:bookingId, :driverId) on conflict do nothing",

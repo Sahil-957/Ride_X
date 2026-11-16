@@ -21,6 +21,9 @@ public interface DriverProfileRepository extends JpaRepository<DriverProfile, Lo
 
     long countByOnlineTrue();
 
+    @EntityGraph(attributePaths = {"user"})
+    List<DriverProfile> findByOnlineTrue();
+
     boolean existsByLicenseNumber(String licenseNumber);
 
     /** Drivers who could take a ride starting at (lat, lng) right now. */

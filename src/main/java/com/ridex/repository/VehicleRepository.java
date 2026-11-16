@@ -11,8 +11,6 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
     Optional<Vehicle> findByDriver_UserId(Long driverId);
 
-    boolean existsByRegistrationNumberAndIdNot(String registrationNumber, Long id);
-
     boolean existsByRegistrationNumber(String registrationNumber);
 
     @EntityGraph(attributePaths = {"driver", "driver.user"})

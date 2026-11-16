@@ -50,6 +50,8 @@ public class DriverProfile {
     public boolean isOnline() { return online; }
     public Instant getApprovedAt() { return approvedAt; }
 
+    /** Keeps the in-memory inverse side in sync after adding a vehicle. */
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
     public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
     public void setLicenseExpiry(LocalDate licenseExpiry) { this.licenseExpiry = licenseExpiry; }
     public void setApprovalStatus(ApprovalStatus approvalStatus) { this.approvalStatus = approvalStatus; }
