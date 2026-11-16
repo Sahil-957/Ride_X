@@ -23,5 +23,36 @@ spring:
         jdbc:
           time_zone: UTC
 
+  servlet:
+    multipart:
+      max-file-size: 2MB          # driver documents
+      max-request-size: 3MB
+
 server:
   port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 8h                 # a driver's shift
+      cookie:
+        same-site: lax
+
+ridex:
+  time-zone: Asia/Kolkata         # "today" for earnings and revenue
+  fare:                           # fare = max(minimum, base + per-km * km + per-min * minutes)
+    base: 20
+    per-km: 6
+    per-min: 0.5
+    minimum: 30
+    commission-rate: 0.20         # platform share of each paid fare
+  dispatch:
+    radius-km: 5                  # how far a driver can be from the pickup
+    request-timeout-minutes: 3    # unanswered requests expire after this
+    location-stale-seconds: 120   # drivers who stopped sending GPS are ignored
+  routing:
+    osrm-url: https://router.project-osrm.org
+    nominatim-url: https://nominatim.openstreetmap.org
+    user-agent: RideX-college-project/1.0
+    country-codes: in
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
