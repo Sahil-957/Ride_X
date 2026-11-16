@@ -36,6 +36,10 @@ body {
 .form-control, .form-select { border-radius: 12px; padding: .65rem .9rem; border-color: var(--rx-line); }
 .form-control:focus, .form-select:focus { border-color: var(--rx-yellow-dark); box-shadow: 0 0 0 .2rem rgba(255, 210, 63, .35); }
 .form-label { font-weight: 600; font-size: .875rem; color: var(--rx-ink-2); }
+.nav-pills { --bs-nav-pills-link-active-bg: var(--rx-ink); --bs-nav-pills-link-active-color: var(--rx-yellow); }
+.nav-pills .nav-link { color: var(--rx-ink-2); font-weight: 600; border-radius: 10px; }
+.form-check-input:checked { background-color: var(--rx-green); border-color: var(--rx-green); }
+.modal-content { border: 0; border-radius: var(--rx-radius); }
 .text-muted { color: var(--rx-muted) !important; }
 a { color: var(--rx-ink); }
 
@@ -90,12 +94,11 @@ a { color: var(--rx-ink); }
   .rx-panel > .rx-card { border-radius: var(--rx-radius); }
 }
 
-/* Trip input with pickup/drop dots */
-.trip-field { position: relative; }
-.trip-field .dot { position: absolute; left: 14px; top: 50%; width: 10px; height: 10px; border-radius: 50%; transform: translateY(-50%); z-index: 5; }
-.trip-field .dot.pickup { background: var(--rx-green); }
-.trip-field .dot.drop { background: var(--rx-red); border-radius: 2px; }
-.trip-field .form-control { padding-left: 34px; }
+/* Trip inputs with pickup/drop dots */
+.rx-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.rx-dot.pickup { background: var(--rx-green); }
+.rx-dot.drop { background: var(--rx-red); border-radius: 2px; }
+.input-group .btn.active { background: var(--rx-ink); color: var(--rx-yellow); border-color: var(--rx-ink); }
 .search-results { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; max-height: 260px; overflow-y: auto; }
 .search-results .list-group-item { cursor: pointer; font-size: .875rem; }
 

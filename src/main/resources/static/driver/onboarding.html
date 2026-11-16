@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile &amp; documents · RideX Captain</title>
+  <link rel="icon" href="/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/css/app.css" rel="stylesheet">
+</head>
+<body>
+<nav id="app-nav" class="rx-navbar"></nav>
+
+<main class="container py-4" style="max-width: 920px">
+  <h1 class="page-title h3 mb-1">Profile &amp; documents</h1>
+  <p class="text-muted mb-3">Complete all three steps. Our team reviews your details before you can go online.</p>
+  <div id="banner"></div>
+
+  <div class="rx-card mb-3">
+    <div class="rx-card-header"><span><span class="step-num me-2">1</span>Driving licence</span><span id="step1"></span></div>
+    <form id="profileForm" class="rx-card-body row g-3" novalidate>
+      <div class="col-md-7">
+        <label class="form-label" for="licenseNumber">Licence number</label>
+        <input class="form-control text-uppercase" id="licenseNumber" name="licenseNumber" maxlength="30" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label" for="licenseExpiry">Valid until</label>
+        <input class="form-control" id="licenseExpiry" name="licenseExpiry" type="date" required>
+      </div>
+      <div class="col-12"><button class="btn btn-dark" type="submit" data-busy-text="Saving…">Save licence</button></div>
+    </form>
+  </div>
+
+  <div class="rx-card mb-3">
+    <div class="rx-card-header"><span><span class="step-num me-2">2</span>Your bike</span><span id="step2"></span></div>
+    <form id="vehicleForm" class="rx-card-body row g-3" novalidate>
+      <div class="col-md-4">
+        <label class="form-label" for="registrationNumber">Vehicle number</label>
+        <input class="form-control text-uppercase" id="registrationNumber" name="registrationNumber" maxlength="20" placeholder="MH12AB1234" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="make">Make</label>
+        <input class="form-control" id="make" name="make" maxlength="50" placeholder="Honda" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="model">Model</label>
+        <input class="form-control" id="model" name="model" maxlength="50" placeholder="Activa 6G" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="color">Colour</label>
+        <input class="form-control" id="color" name="color" maxlength="30" placeholder="Black" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="manufactureYear">Year</label>
+        <input class="form-control" id="manufactureYear" name="manufactureYear" type="number" min="1990" max="2100" required>
+      </div>
+      <div class="col-12"><button class="btn btn-dark" type="submit" data-busy-text="Saving…">Save vehicle</button></div>
+    </form>
+  </div>
+
+  <div class="rx-card mb-3">
+    <div class="rx-card-header"><span><span class="step-num me-2">3</span>Documents</span><span id="step3"></span></div>
+    <div class="rx-card-body">
+      <p class="small text-muted">PDF, JPG or PNG, up to 2 MB each.</p>
+      <div id="documents" class="vstack gap-2"></div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/driver/onboarding.js"></script>
+</body>
+</html>
