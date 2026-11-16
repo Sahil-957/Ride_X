@@ -19,7 +19,7 @@ async function loadStats() {
     stat('bi-check2-circle', 'bg-soft-green', 'Completed today', s.ridesToday) +
     stat('bi-currency-rupee', 'bg-soft-gray', 'Revenue today', UI.money(s.revenueToday), `${UI.money(s.commissionToday)} commission`);
   document.getElementById('pendingAlert').innerHTML = s.pendingDrivers ? `
-    <div class="alert alert-warning rx-card border-0 d-flex align-items-center gap-2">
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center gap-2">
       <i class="bi bi-person-exclamation fs-5"></i>
       <div class="flex-grow-1">${s.pendingDrivers} captain${s.pendingDrivers > 1 ? 's are' : ' is'} waiting for approval.</div>
       <a class="btn btn-sm btn-dark" href="/admin/drivers.html">Review</a></div>` : '';

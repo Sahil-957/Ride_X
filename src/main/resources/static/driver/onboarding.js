@@ -23,7 +23,7 @@ function render(p) {
   };
   const [type, icon, heading, text] = banners[p.approvalStatus];
   document.getElementById('banner').innerHTML = `
-    <div class="alert alert-${type} d-flex gap-3 align-items-start rx-card border-0">
+    <div class="alert alert-${type} d-flex gap-3 align-items-start border-0 shadow-sm rounded-4">
       <i class="bi ${icon} fs-4"></i><div><div class="fw-bold">${heading}</div><div class="small">${text}</div></div>
     </div>`;
 

@@ -43,4 +43,7 @@ API surface, page list, roadmap and key decisions. Update it when a decision cha
 - Every screen shows real API data and has loading, empty and error states. Mobile-first layouts.
 
 ## Tests
-- Database tests run against Neon (a separate test branch, credentials from `.env`); keep tests on PostgreSQL.
+- Surefire only runs classes named `*Test` / `*Tests`; name new test classes that way.
+- Database tests run against the Neon branch in `.env.local` and must delete exactly the rows they create
+  (see `RideFlowTest`), or use `@Transactional` rollback for single-thread tests. Keep tests on PostgreSQL.
+- Test data uses `example.com` / `ridex.local` hosts. Secret scanners flag realistic Neon-looking URLs.

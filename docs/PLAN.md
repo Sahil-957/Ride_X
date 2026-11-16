@@ -1,7 +1,7 @@
 # RideX – Architecture & Implementation Plan
 
-Approved plan. Source of truth for architecture, schema, API surface, pages and roadmap.
-Update this file when a decision changes.
+Source of truth for architecture, schema, API surface, pages and roadmap. All 10 phases are implemented;
+this file describes the system as built. Update it when a decision changes.
 
 ## 1. System architecture
 
@@ -36,7 +36,7 @@ Update this file when a decision changes.
 | Fixed fare set by the server at booking (Rapido model) | Browser can't tamper with fare | Metered fare |
 | Broadcast request to nearby drivers, first accept wins | Simple, demo-able, safe via one atomic UPDATE | Sequential offer to nearest driver (upgrade path) |
 | Polling every 4 s, paused when tab hidden | Nothing extra to run, easy to explain | SSE / WebSockets (upgrade path, both built into Spring) |
-| `RoutingService` interface | Replaceable routing: Haversine in Phase 4, OSRM + Haversine fallback in Phase 7 | Calling OSRM from the browser |
+| `RoutingService` interface | Replaceable routing: `OsrmRoutingService` (public OSRM) with a straight-line × 1.3 fallback | Calling OSRM from the browser |
 | Driver documents in Postgres (`bytea`, ≤ 2 MB) | Cloud hosts wipe local disk; no extra storage service | Local `uploads/`, S3 |
 | Aggregates (avg rating, earnings, revenue) computed by SQL | Always correct, nothing to drift | Stored counters |
 | lat/lng as `double precision` + Haversine in SQL | Enough at city scale | PostGIS (upgrade path) |
@@ -119,7 +119,7 @@ erDiagram
         numeric distance_km
         int duration_min
         numeric fare
-        text route_geojson
+        text route_path "JSON [[lat,lng],...]"
         varchar status
         char otp "4 digits"
         timestamptz requested_at
@@ -184,14 +184,15 @@ REQUESTED ──accept──► ACCEPTED ──start (OTP)──► STARTED ─�
 ├── docs/                      this plan; Phase 10 report material
 └── src/
     ├── main/java/com/ridex/
-    │   ├── config/       AppProperties, AdminSeeder, HttpClientConfig
-    │   ├── security/     SecurityConfig, AppUserDetailsService, AppUserPrincipal, JsonAuthHandlers
+    │   ├── config/       AppProperties, DatabaseConfig (Neon URL → JDBC), AdminSeeder
+    │   ├── security/     SecurityConfig (rules, JSON login/logout, CSRF), AppUser, AppUserDetailsService
     │   ├── controller/   Auth, Geo, Passenger, Driver, Admin controllers
-    │   ├── service/      Auth, Driver, Booking, Dispatch, Fare, Rating, Admin services, BookingExpiryJob
-    │   │   └── routing/  RoutingService, HaversineRoutingService, OsrmRoutingService, GeocodingService
+    │   ├── service/      AuthService, BookingService (lifecycle + dispatch + expiry job), BookingMapper,
+    │   │                 DriverService, AdminService, FareService, Reports
+    │   │   └── routing/  RoutingService, OsrmRoutingService, GeocodingService
     │   ├── repository/   one Spring Data repository per entity
-    │   ├── entity/       User, DriverProfile, Vehicle, DriverDocument, DriverLocation,
-    │   │                 Booking, BookingRejection, Payment, Rating
+    │   ├── entity/       User, DriverProfile, Vehicle, DriverDocument, DriverLocation, Booking, Payment, Rating
+    │   │                 (booking_rejections is written by a native insert, no entity needed)
     │   ├── dto/          records: auth/, booking/, driver/, admin/, geo/
     │   ├── enums/        Role, AccountStatus, ApprovalStatus, VehicleStatus, DocumentType,
     │   │                 BookingStatus, PaymentMethod, PaymentStatus
@@ -229,10 +230,10 @@ JSON everywhere. Errors use ProblemDetail: `{status, title, detail, errors[]}`.
 | POST | `/api/passenger/estimate` | pickup + drop → distance, duration, fare, route |
 | POST | `/api/passenger/bookings` | create; server recalculates fare; 409 if no driver nearby / already has open ride |
 | GET | `/api/passenger/bookings/active` | current ride; driver, bike, OTP once accepted (polled) |
-| GET | `/api/passenger/bookings?page=` | history |
+| GET | `/api/passenger/bookings` | history (latest 50) |
 | GET | `/api/passenger/bookings/{id}` | one ride (own only) |
 | POST | `/api/passenger/bookings/{id}/cancel` | while REQUESTED or ACCEPTED |
-| POST | `/api/passenger/bookings/{id}/rating` | 1–5 stars + comment; completed rides, once |
+| POST | `/api/passenger/bookings/{id}/rating` | 1–5 stars + comment; completed rides, once (204) |
 
 **Driver** (DRIVER)
 | Method | Path | Purpose |
@@ -248,25 +249,25 @@ JSON everywhere. Errors use ProblemDetail: `{status, title, detail, errors[]}`.
 | GET | `/api/driver/bookings/active` | current ride + passenger + route |
 | POST | `/api/driver/bookings/{id}/start` | `{otp}` |
 | POST | `/api/driver/bookings/{id}/complete` | ends ride, payment PAID |
-| POST | `/api/driver/bookings/{id}/cancel` | before start only |
-| GET | `/api/driver/earnings?range=today\|week\|month` | totals + per-day |
-| GET | `/api/driver/bookings?page=` | history |
+| POST | `/api/driver/bookings/{id}/cancel` | before start only; the ride goes back to other nearby captains |
+| GET | `/api/driver/earnings` | today / 7-day / 30-day totals, rating, last 7 days per day |
+| GET | `/api/driver/bookings` | history (latest 50) |
 
 **Admin** (ADMIN)
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/admin/stats` | counts + today's revenue |
 | GET | `/api/admin/analytics?days=30` | revenue, commission, rides per day; status breakdown |
-| GET | `/api/admin/passengers?search=&page=` | list |
+| GET | `/api/admin/passengers` | list with ride counts (search is client-side) |
 | PATCH | `/api/admin/users/{id}/status` | ACTIVE / BLOCKED |
-| GET | `/api/admin/drivers?approval=&page=` | list / pending queue |
+| GET | `/api/admin/drivers?approval=` | list / pending queue |
 | GET | `/api/admin/drivers/{id}` | profile, bike, documents, rating |
 | GET | `/api/admin/documents/{docId}` | download document |
 | POST | `/api/admin/drivers/{id}/approve` · `/reject` | reject needs `{reason}` |
-| GET | `/api/admin/vehicles?page=` | list |
+| GET | `/api/admin/vehicles` | list |
 | PATCH | `/api/admin/vehicles/{id}/status` | ACTIVE / INACTIVE |
-| GET | `/api/admin/bookings?status=&from=&to=&page=` | all bookings |
-| GET | `/api/admin/rides/active` | active rides + driver positions (polled) |
+| GET | `/api/admin/bookings?status=` | latest 200 bookings |
+| GET | `/api/admin/live` | open/active rides with routes + online captains' positions (polled) |
 
 Pages: `/passenger/**`, `/driver/**`, `/admin/**` need the matching role; anonymous → `/login.html`.
 No admin sign-up: one admin is created at startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` if none exists.
