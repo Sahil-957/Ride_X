@@ -10,12 +10,13 @@ class NeonUrlTest {
 
     @Test
     void convertsNeonUrlToJdbc() {
+        // Fake values on an example.com host, so secret scanners don't mistake it for a real Neon URL.
         NeonUrl url = NeonUrl.parse(
-                "postgresql://neondb_owner:p%40ss:w0rd@ep-cool-1.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require");
+                "postgresql://test_user:p%40ss:w0rd@db.example.com/testdb?sslmode=require&channel_binding=require");
 
-        assertEquals("jdbc:postgresql://ep-cool-1.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+        assertEquals("jdbc:postgresql://db.example.com/testdb?sslmode=require&channel_binding=require",
                 url.jdbcUrl());
-        assertEquals("neondb_owner", url.username());
+        assertEquals("test_user", url.username());
         assertEquals("p@ss:w0rd", url.password());
     }
 
