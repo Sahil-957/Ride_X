@@ -170,6 +170,7 @@ REQUESTED ──accept──► ACCEPTED ──start (OTP)──► STARTED ─�
 | Startup | Context loads, Flyway migrates, Hibernate validates every entity against the schema | 1 test passes |
 | End-to-end over HTTP | 33 checks: sign-up, onboarding, fake-file rejection, approval, booking, tampered fare ignored, accept, wrong OTP, complete, rating, dashboards, every page per role, logout | all pass |
 | Browser | Every page loaded in headless Edge at 1366 px and 390 px width | no console errors |
+| UI click-through | 26 steps with separate passenger / captain / admin browsers: sign-up forms, uploads, approval and rejection, online switch, address search, book, accept, wrong and right OTP, complete, rating, history, earnings, captain release, cancel, block / unblock, vehicle deactivation, logout | all pass, no console errors |
 
 Run `./mvnw verify` to repeat the automated suite (16 tests).
 

@@ -86,7 +86,22 @@ async function setOnline(on) {
 
 // ------------------------------------------------------------------ requests
 
+let ticks = 0;
+
+/** The admin can take a captain offline (vehicle deactivated, account blocked); notice it within ~12 s. */
+async function syncProfile() {
+  const fresh = await Api.get('/api/driver/profile');
+  const changed = fresh.online !== profile.online;
+  profile = fresh;
+  if (changed) {
+    renderStatus();
+    shownKey = null;
+    if (!fresh.online) UI.toast('You have been taken offline. Check with the admin if this is unexpected.', 'warning');
+  }
+}
+
 async function refresh() {
+  if (++ticks % 3 === 0) await syncProfile();
   const active = await Api.get('/api/driver/bookings/active');
   if (active) {
     showRide(active);

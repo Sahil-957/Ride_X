@@ -102,7 +102,11 @@ Use two browsers, or one normal and one private window, because each keeps its o
 | `NeonUrlTest` | Neon `postgresql://` URL → JDBC URL + credentials |
 | `DatabaseConnectionTest` | Live read and write on Neon |
 
-Every page was also loaded in headless Edge at desktop and phone width with no console errors.
+Beyond the automated suite, the UI was verified in headless Edge:
+- every page loaded at desktop and phone width with no console errors;
+- a 26-step click-through of the whole product with separate passenger, captain and admin browsers. It covers:
+  sign-up forms, document upload, approval and rejection, going online, address search, booking, accept, OTP,
+  complete, rating, history, earnings, cancel and release, blocking, vehicle deactivation and logout.
 
 ## Project structure
 
