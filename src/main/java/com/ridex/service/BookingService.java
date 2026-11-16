@@ -10,6 +10,7 @@ import com.ridex.service.routing.RoutingService;
 import com.ridex.service.routing.RoutingService.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +78,10 @@ public class BookingService {
 
     @Transactional
     public BookingView create(Long passengerId, TripRequest trip) {
+        User passenger = users.findById(passengerId).orElseThrow(() -> ApiException.notFound("User"));
+        if (passenger.getStatus() != AccountStatus.ACTIVE) { // sessions outlive a block; check on every booking
+            throw new ApiException(HttpStatus.FORBIDDEN, "Your account has been blocked. Contact support.");
+        }
         if (bookings.existsByPassenger_IdAndStatusIn(passengerId, OPEN)) {
             throw ApiException.conflict("You already have an open booking.");
         }
@@ -85,7 +90,7 @@ public class BookingService {
             throw ApiException.conflict("No captains are available near your pickup right now. Please try again in a few minutes.");
         }
         BigDecimal fare = fares.fareFor(route.distanceKm(), route.durationMin());
-        Booking booking = bookings.save(new Booking(users.getReferenceById(passengerId),
+        Booking booking = bookings.save(new Booking(passenger,
                 address(trip.pickupAddress(), trip.pickupLat(), trip.pickupLng()), trip.pickupLat(), trip.pickupLng(),
                 address(trip.dropAddress(), trip.dropLat(), trip.dropLng()), trip.dropLat(), trip.dropLng(),
                 km(route), route.durationMin(), fare, route.path(), "%04d".formatted(RANDOM.nextInt(10_000))));

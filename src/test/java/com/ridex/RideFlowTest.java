@@ -6,6 +6,7 @@ import com.ridex.dto.BookingDtos.RatingRequest;
 import com.ridex.dto.BookingDtos.TripRequest;
 import com.ridex.dto.DriverDtos.ProfileRequest;
 import com.ridex.dto.DriverDtos.VehicleRequest;
+import com.ridex.enums.AccountStatus;
 import com.ridex.enums.BookingStatus;
 import com.ridex.enums.DocumentType;
 import com.ridex.enums.PaymentMethod;
@@ -99,6 +100,11 @@ class RideFlowTest {
     void cancelReleaseAndExpiry() {
         long passenger = passenger();
         long driver = approvedOnlineDriver();
+
+        // A blocked passenger cannot book, even with a live session
+        adminService.setUserStatus(passenger, AccountStatus.BLOCKED);
+        assertThrows(ApiException.class, () -> bookingService.create(passenger, trip()));
+        adminService.setUserStatus(passenger, AccountStatus.ACTIVE);
 
         // Passenger cancels while searching → payment voided
         BookingView first = bookingService.create(passenger, trip());

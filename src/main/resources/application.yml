@@ -30,6 +30,7 @@ spring:
 
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: framework  # behind a hosting proxy: keep https in redirects
   servlet:
     session:
       timeout: 8h                 # a driver's shift
