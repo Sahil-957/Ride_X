@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: RideX
+  config:
+    # `neon env pull` / `neon deploy` write DATABASE_URL* into .env (or .env.local if .env is missing).
+    # Both are gitignored. On a server, set real environment variables instead.
+    import: optional:file:.env[.properties],optional:file:.env.local[.properties]
+
+  datasource:
+    # Connection URL + credentials come from DATABASE_URL_UNPOOLED, see config/DatabaseConfig.java
+    hikari:
+      maximum-pool-size: 5        # Neon free tier has a small connection limit
+      max-lifetime: 240000        # recycle before Neon drops idle connections (~5 min)
+      keepalive-time: 120000
+      connection-timeout: 30000   # first query can wake a suspended Neon compute
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # Flyway owns the schema; Hibernate only checks it
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+server:
+  port: ${PORT:8080}
