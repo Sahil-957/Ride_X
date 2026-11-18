@@ -73,8 +73,9 @@ async function setOnline(on) {
     return;
   }
   try {
+    // Fresh GPS first: the server takes captains with a silent GPS offline
+    if (on) await Api.put('/api/driver/location', { lat: myPos[0], lng: myPos[1] });
     profile = await Api.put('/api/driver/availability', { online: on });
-    if (on) await sendLocation();
     UI.toast(on ? 'You are online. Requests will appear here.' : 'You are offline.', on ? 'success' : 'info');
   } catch (e) {
     UI.toast(e.message);
@@ -96,7 +97,7 @@ async function syncProfile() {
   if (changed) {
     renderStatus();
     shownKey = null;
-    if (!fresh.online) UI.toast('You have been taken offline. Check with the admin if this is unexpected.', 'warning');
+    if (!fresh.online) UI.toast('You have been taken offline (no GPS for a while, or by the admin). Switch on to continue.', 'warning');
   }
 }
 

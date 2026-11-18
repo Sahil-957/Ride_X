@@ -11,6 +11,9 @@ import com.ridex.repository.*;
 import com.ridex.repository.BookingRepository.IdCount;
 import com.ridex.repository.PaymentRepository.DailyTotal;
 import com.ridex.repository.RatingRepository.DriverAverage;
+import com.ridex.security.AppUser;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,11 +40,13 @@ public class AdminService {
     private final DriverService driverService;
     private final BookingMapper mapper;
     private final AppProperties properties;
+    private final SessionRegistry sessionRegistry;
 
     public AdminService(UserRepository users, DriverProfileRepository drivers, VehicleRepository vehicles,
                         DriverDocumentRepository documents, DriverLocationRepository locations,
                         BookingRepository bookings, PaymentRepository payments, RatingRepository ratings,
-                        DriverService driverService, BookingMapper mapper, AppProperties properties) {
+                        DriverService driverService, BookingMapper mapper, AppProperties properties,
+                        SessionRegistry sessionRegistry) {
         this.users = users;
         this.drivers = drivers;
         this.vehicles = vehicles;
@@ -53,6 +58,7 @@ public class AdminService {
         this.driverService = driverService;
         this.mapper = mapper;
         this.properties = properties;
+        this.sessionRegistry = sessionRegistry;
     }
 
     // ---------------------------------------------------------------- dashboard
@@ -112,9 +118,19 @@ public class AdminService {
             throw ApiException.conflict("Admin accounts cannot be blocked.");
         }
         user.setStatus(status);
-        if (status == AccountStatus.BLOCKED && user.getRole() == Role.DRIVER) {
-            drivers.findById(userId).ifPresent(d -> d.setOnline(false));
+        if (status == AccountStatus.BLOCKED) {
+            if (user.getRole() == Role.DRIVER) {
+                drivers.findById(userId).ifPresent(d -> d.setOnline(false));
+            }
+            endSessions(userId); // logged out on their next request, not when the session times out
         }
+    }
+
+    private void endSessions(Long userId) {
+        sessionRegistry.getAllPrincipals().stream()
+                .filter(p -> p instanceof AppUser u && u.id().equals(userId))
+                .flatMap(p -> sessionRegistry.getAllSessions(p, false).stream())
+                .forEach(SessionInformation::expireNow);
     }
 
     // ---------------------------------------------------------------- drivers
@@ -151,6 +167,9 @@ public class AdminService {
         DriverProfile driver = loadDriver(driverId);
         if (driver.getLicenseExpiry() == null) {
             throw ApiException.conflict("The driver has not completed their licence details.");
+        }
+        if (driver.getLicenseExpiry().isBefore(LocalDate.now(ZoneId.of(properties.timeZone())))) {
+            throw ApiException.conflict("The driver's licence has expired. Ask them to update it before approving.");
         }
         if (driver.getVehicle() == null) {
             throw ApiException.conflict("The driver has not added a vehicle.");

@@ -4,6 +4,7 @@ import com.ridex.entity.DriverProfile;
 import com.ridex.enums.ApprovalStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
@@ -39,4 +40,14 @@ public interface DriverProfileRepository extends JpaRepository<DriverProfile, Lo
                               where b.driver_id = d.user_id and b.status in ('ACCEPTED', 'STARTED'))
             """, nativeQuery = true)
     long countAvailableNear(double lat, double lng, double radiusKm, Instant freshSince);
+
+    /** Online captains who are not on a ride and sent no GPS since `freshSince` (app closed) go offline. */
+    @Modifying
+    @Query(value = """
+            update driver_profiles d set online = false
+            where d.online
+              and not exists (select 1 from driver_locations l where l.driver_id = d.user_id and l.updated_at > :freshSince)
+              and not exists (select 1 from bookings b where b.driver_id = d.user_id and b.status in ('ACCEPTED', 'STARTED'))
+            """, nativeQuery = true)
+    int goOfflineIfSilentSince(Instant freshSince);
 }

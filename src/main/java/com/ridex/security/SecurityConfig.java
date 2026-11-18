@@ -11,10 +11,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import java.io.IOException;
@@ -31,8 +38,22 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /** Tracks who is logged in where, so blocking a user can end their open sessions (see AdminService). */
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, DriverProfileRepository drivers) throws Exception {
+    SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    /** Tells the registry when sessions time out or log out; Spring Boot registers it as a servlet listener. */
+    @Bean
+    HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(HttpSecurity http, DriverProfileRepository drivers,
+                                            SessionRegistry sessionRegistry) throws Exception {
+        AccessDeniedHandler forbidden = new AccessDeniedHandlerImpl();
         http
                 // XSRF-TOKEN cookie readable by JS; js/api.js echoes it in the X-XSRF-TOKEN header
                 .csrf(csrf -> csrf.spa())
@@ -62,10 +83,33 @@ public class SecurityConfig {
                         .logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(HttpServletResponse.SC_NO_CONTENT)))
+                // Sessions the admin expired (user blocked) stop working on the very next request
+                .sessionManagement(session -> session
+                        .maximumSessions(-1)
+                        .sessionRegistry(sessionRegistry)
+                        .expiredSessionStrategy(event -> {
+                            if (event.getRequest().getRequestURI().startsWith("/api/")) {
+                                writeJson(event.getResponse(), HttpStatus.UNAUTHORIZED,
+                                        "{\"status\":401,\"detail\":\"Your account has been blocked. Contact support.\"}");
+                            } else {
+                                event.getResponse().sendRedirect("/login.html?blocked");
+                            }
+                        }))
                 // APIs answer 401 JSON; pages fall back to the form-login redirect to /login.html
-                .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(
-                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                        PathPatternRequestMatcher.withDefaults().matcher("/api/**")));
+                .exceptionHandling(ex -> ex
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                PathPatternRequestMatcher.withDefaults().matcher("/api/**"))
+                        // A page for another role sends you to your own home instead of an error page
+                        .accessDeniedHandler((request, response, denied) -> {
+                            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                            if (!request.getRequestURI().startsWith("/api/") && auth != null
+                                    && auth.getPrincipal() instanceof AppUser user) {
+                                response.sendRedirect(homePage(user, drivers));
+                            } else {
+                                forbidden.handle(request, response, denied);
+                            }
+                        }));
         return http.build();
     }
 

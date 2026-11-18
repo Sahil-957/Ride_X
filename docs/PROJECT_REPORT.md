@@ -43,7 +43,7 @@ cheaper, but they need a platform that can:
 | Captain onboarding | captain | Licence details, bike details, document upload, approval status |
 | Captain operations | captain | Online/offline, GPS updates, nearby requests, accept/skip, OTP start, complete, earnings |
 | Dispatch & lifecycle | system | Nearby-captain search, atomic accept, automatic expiry of unanswered requests |
-| Administration | admin | Dashboard, analytics, passenger blocking, captain approval, vehicle status, bookings, live map |
+| Administration | admin | Dashboard, analytics, passenger and captain blocking, captain approval, vehicle status, bookings, live map |
 | Maps & routing | all | Leaflet maps, OSRM road routes, Nominatim address search, straight-line fallback |
 
 ## 5. Technology stack
@@ -164,15 +164,15 @@ REQUESTED ──accept──► ACCEPTED ──start (OTP)──► STARTED ─�
 
 | Level | What | Result |
 |---|---|---|
-| Unit | Fare formula, Neon URL conversion | 6 tests pass |
-| Integration (live Neon DB) | Full ride flow incl. two-captain race, cancel, release, expiry, blocked user; DB read/write | 4 tests pass |
-| Security (MockMvc) | Role isolation, CSRF, register + login, validation errors | 5 tests pass |
+| Unit | Fare formula, Neon URL conversion, admin account seeding | 9 tests pass |
+| Integration (live Neon DB) | Full ride flow incl. two-captain race, cancel, release, expiry, blocked user, silent captain taken offline; DB read/write | 4 tests pass |
+| Security (MockMvc) | Role isolation, CSRF, register + login, blocking ends an open session, validation errors | 6 tests pass |
 | Startup | Context loads, Flyway migrates, Hibernate validates every entity against the schema | 1 test passes |
 | End-to-end over HTTP | 33 checks: sign-up, onboarding, fake-file rejection, approval, booking, tampered fare ignored, accept, wrong OTP, complete, rating, dashboards, every page per role, logout | all pass |
 | Browser | Every page loaded in headless Edge at 1366 px and 390 px width | no console errors |
 | UI click-through | 26 steps with separate passenger / captain / admin browsers: sign-up forms, uploads, approval and rejection, online switch, address search, book, accept, wrong and right OTP, complete, rating, history, earnings, captain release, cancel, block / unblock, vehicle deactivation, logout | all pass, no console errors |
 
-Run `./mvnw verify` to repeat the automated suite (16 tests).
+Run `./mvnw verify` to repeat the automated suite (20 tests).
 
 ## 11. Screenshots
 
@@ -191,7 +191,6 @@ Run `./mvnw verify` to repeat the automated suite (16 tests).
 | Requests are broadcast to all nearby captains | Offer to the nearest captain first, with timeouts, as large platforms do |
 | Public OSRM / Nominatim servers (rate-limited) | Self-hosted OSRM or a commercial routing API |
 | Admin lists show the latest 50–200 records | Server-side paging and date filters |
-| Blocking a user doesn't end sessions that are already open (booking is still blocked) | Session registry to log blocked users out immediately |
 | No password reset or phone OTP login | Email/SMS verification flows |
 
 ## 13. Conclusion

@@ -36,7 +36,8 @@ const Api = (() => {
     }
 
     if (response.status === 401 && url !== '/api/auth/login') {
-      location.href = '/login.html?expired';
+      const reason = await response.json().catch(() => null); // the session ends early when an admin blocks the user
+      location.href = reason?.detail?.includes('blocked') ? '/login.html?blocked' : '/login.html?expired';
       throw new ApiError('Your session has expired. Please log in again.', 401);
     }
     if (response.status === 204) return null;

@@ -77,9 +77,23 @@ function showReview(d) {
     </div>`;
 
   const footer = document.getElementById('reviewFooter');
+  const blocked = d.accountStatus === 'BLOCKED';
   footer.innerHTML = `
+    <button class="btn ${blocked ? 'btn-outline-success' : 'btn-outline-secondary'} me-auto" id="blockBtn" data-busy-text="Saving…">
+      <i class="bi ${blocked ? 'bi-check-circle' : 'bi-slash-circle'} me-1"></i>${blocked ? 'Unblock account' : 'Block account'}</button>
     ${d.approvalStatus !== 'REJECTED' ? '<button class="btn btn-outline-danger" id="rejectBtn" data-busy-text="Rejecting…"><i class="bi bi-x-lg me-1"></i>Reject</button>' : ''}
     ${d.approvalStatus !== 'APPROVED' ? '<button class="btn btn-success" id="approveBtn" data-busy-text="Approving…"><i class="bi bi-check-lg me-1"></i>Approve</button>' : ''}`;
+  document.getElementById('blockBtn').addEventListener('click', async (e) => {
+    if (!blocked && !confirm(`Block ${d.fullName}? They are logged out and cannot log in or go online.`)) return;
+    try {
+      await UI.busy(e.currentTarget, () => Api.patch(`/api/admin/users/${d.id}/status`, { status: blocked ? 'ACTIVE' : 'BLOCKED' }));
+      UI.toast(blocked ? `${d.fullName} is unblocked.` : `${d.fullName} is blocked and logged out.`, 'success');
+      reviewModal.hide();
+      load();
+    } catch {
+      // error already shown
+    }
+  });
   document.getElementById('approveBtn')?.addEventListener('click', async (e) => {
     try {
       await UI.busy(e.currentTarget, () => Api.post(`/api/admin/drivers/${d.id}/approve`));

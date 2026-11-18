@@ -6,6 +6,7 @@ function notice(text, type) {
 }
 if (query.has('expired')) notice('Your session has expired. Please log in again.', 'warning');
 if (query.has('loggedout')) notice('You have been logged out.', 'success');
+if (query.has('blocked')) notice('Your account has been blocked. Contact support.', 'danger');
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();

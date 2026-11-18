@@ -20,7 +20,7 @@ public class OsrmRoutingService implements RoutingService {
 
     private static final Logger log = LoggerFactory.getLogger(OsrmRoutingService.class);
     private static final double ROAD_FACTOR = 1.3;        // roads are ~30% longer than a straight line in cities
-    private static final double FALLBACK_SPEED_KMH = 22;  // typical city bike-taxi speed
+    private static final double CITY_SPEED_KMH = 22;      // typical city bike-taxi speed in traffic
 
     private final RestClient http;
 
@@ -49,7 +49,10 @@ public class OsrmRoutingService implements RoutingService {
                 String path = best.geometry().coordinates().stream()
                         .map(c -> "[" + c.get(1) + "," + c.get(0) + "]")
                         .collect(Collectors.joining(",", "[", "]"));
-                return new Route(best.distance() / 1000, (int) Math.ceil(best.duration() / 60), path, false);
+                double km = best.distance() / 1000;
+                // Public OSRM times free-flowing cars (4 km in 6 min across Mumbai); never quote faster than city speed
+                int minutes = Math.max((int) Math.ceil(best.duration() / 60), minutesAtCitySpeed(km));
+                return new Route(km, minutes, path, false);
             }
             log.warn("OSRM found no route ({}), using straight-line estimate", response == null ? "empty" : response.code());
         } catch (RestClientException e) {
@@ -57,7 +60,11 @@ public class OsrmRoutingService implements RoutingService {
         }
         double km = RoutingService.haversineKm(fromLat, fromLng, toLat, toLng) * ROAD_FACTOR;
         String straight = "[[%s,%s],[%s,%s]]".formatted(fromLat, fromLng, toLat, toLng);
-        return new Route(km, (int) Math.ceil(km / FALLBACK_SPEED_KMH * 60), straight, true);
+        return new Route(km, minutesAtCitySpeed(km), straight, true);
+    }
+
+    private static int minutesAtCitySpeed(double km) {
+        return (int) Math.ceil(km / CITY_SPEED_KMH * 60);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

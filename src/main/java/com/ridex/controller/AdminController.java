@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -75,7 +76,7 @@ public class AdminController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(document.getContentType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.inline().filename(document.getFileName()).build().toString())
+                        ContentDisposition.inline().filename(document.getFileName(), StandardCharsets.UTF_8).build().toString())
                 .body(document.getData());
     }
 

@@ -8,6 +8,9 @@ Passengers book rides on a map and track their captain live. Captains go online,
 requests and track their earnings. Admins approve captains, manage users and vehicles, and watch
 every ride on a live map.
 
+> **New to the project?** Start with **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**: how it works,
+> how to run it, a full ride to try, how to test, and fixes for common problems.
+
 | Passenger: live ride | Captain: ride on a phone | Admin dashboard |
 |---|---|---|
 | ![Passenger live ride](docs/screenshots/passenger-live-ride.png) | ![Captain on mobile](docs/screenshots/captain-ride-mobile.png) | ![Admin dashboard](docs/screenshots/admin-dashboard.png) |
@@ -31,7 +34,8 @@ every ride on a live map.
 **Admin**
 - Dashboard: passengers, captains, online now, active rides, today's revenue and commission
 - 14-day revenue chart, bookings by status, live map of open rides and online captains
-- Review captains with their documents and approve or reject; block / unblock passengers;
+- Review captains with their documents and approve or reject; block / unblock passengers and captains
+  (a blocked user is logged out at once);
   activate / deactivate vehicles; browse all bookings with full details
 
 ## How it works
@@ -66,6 +70,8 @@ The college report is in **[docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md)**.
    ADMIN_EMAIL=admin@ridex.local
    ADMIN_PASSWORD=<8+ characters>
    ```
+   The admin is created on first start, and its password follows `ADMIN_PASSWORD` on every start
+   (to change it, edit the value and restart).
 3. **Start** (from the project root, so `.env.local` is found):
    ```bash
    ./mvnw spring-boot:run          # Windows: mvnw.cmd spring-boot:run
@@ -92,12 +98,13 @@ Use two browsers, or one normal and one private window, because each keeps its o
 ./mvnw verify
 ```
 
-16 tests. Tests that touch the database run against the Neon database in `.env.local` and delete only the rows they create.
+20 tests. Tests that touch the database run against the Neon database in `.env.local` and delete only the rows they create.
 
 | Test | Proves |
 |---|---|
-| `RideFlowTest` | Full ride on Neon: **two captains race to accept, exactly one wins**; wrong OTP rejected; payment split; rating once; cancel, captain release and auto-expiry; blocked passenger can't book |
-| `SecurityAccessTest` | Each role is locked out of the others' pages and APIs; CSRF required; register → login; field validation messages |
+| `RideFlowTest` | Full ride on Neon: **two captains race to accept, exactly one wins**; wrong OTP rejected; payment split; rating once; cancel, captain release and auto-expiry; blocked passenger can't book; silent captains go offline |
+| `SecurityAccessTest` | Each role is locked out of the others' APIs (other roles' pages redirect home); CSRF required; register → login; blocking ends an open session; field validation messages |
+| `AdminSeederTest` | Admin is created from `ADMIN_EMAIL` / `ADMIN_PASSWORD`; a stale password is updated; other accounts are never touched |
 | `FareServiceTest` | Fare formula, minimum fare, rounding, 20% commission |
 | `NeonUrlTest` | Neon `postgresql://` URL → JDBC URL + credentials |
 | `DatabaseConnectionTest` | Live read and write on Neon |
@@ -123,7 +130,7 @@ src/main/resources/
   application.yml               all settings; secrets only via environment variables
   db/migration/V1__init_schema.sql
   static/                       index/login/register + passenger/, driver/, admin/ pages (HTML + JS)
-docs/                           PLAN.md, PROJECT_REPORT.md, DEPLOYMENT.md, screenshots/
+docs/                           GETTING_STARTED.md, PLAN.md, PROJECT_REPORT.md, DEPLOYMENT.md, screenshots/
 ```
 
 ## Deployment

@@ -4,7 +4,7 @@ const RxMap = (() => {
 
   function create(elementId, center = DEFAULT_CENTER, zoom = 13) {
     const map = L.map(elementId, { zoomControl: true }).setView(center, zoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);

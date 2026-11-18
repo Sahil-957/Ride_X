@@ -125,6 +125,13 @@ class RideFlowTest {
         BookingView expired = bookingService.passengerBooking(passenger, second.id());
         assertEquals(BookingStatus.EXPIRED, expired.status());
         assertEquals(PaymentStatus.VOID, expired.paymentStatus());
+
+        // The captain closed the app without going offline: after 10 silent minutes the job takes them offline
+        driverService.takeSilentCaptainsOffline();
+        assertTrue(driverService.profile(driver).online(), "a captain with fresh GPS stays online");
+        jdbc.update("update driver_locations set updated_at = now() - interval '11 minutes' where driver_id = ?", driver);
+        driverService.takeSilentCaptainsOffline();
+        assertFalse(driverService.profile(driver).online());
     }
 
     // ------------------------------------------------------------------ helpers

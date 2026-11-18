@@ -24,7 +24,7 @@ function render() {
 
 async function setStatus(button) {
   const blocking = button.dataset.status === 'BLOCKED';
-  if (blocking && !confirm('Block this passenger? They will not be able to log in.')) return;
+  if (blocking && !confirm('Block this passenger? They are logged out and will not be able to log in.')) return;
   try {
     await UI.busy(button, () => Api.patch(`/api/admin/users/${button.dataset.id}/status`, { status: button.dataset.status }));
     UI.toast(blocking ? 'Passenger blocked.' : 'Passenger unblocked.', 'success');

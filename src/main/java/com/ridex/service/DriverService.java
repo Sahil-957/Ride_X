@@ -7,12 +7,17 @@ import com.ridex.enums.*;
 import com.ridex.exception.ApiException;
 import com.ridex.repository.*;
 import com.ridex.repository.PaymentRepository.DailyTotal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
@@ -25,7 +30,10 @@ import java.util.regex.Pattern;
 @Service
 public class DriverService {
 
+    private static final Logger log = LoggerFactory.getLogger(DriverService.class);
     private static final Pattern VEHICLE_NUMBER = Pattern.compile("[A-Z]{2}[0-9]{1,2}[A-Z]{0,3}[0-9]{1,4}");
+    // The app sends GPS every 15 s; background tabs slow that to about once a minute, so 10 min means "gone".
+    private static final Duration SILENT_OFFLINE_AFTER = Duration.ofMinutes(10);
 
     private final DriverProfileRepository drivers;
     private final VehicleRepository vehicles;
@@ -145,6 +153,16 @@ public class DriverService {
             throw ApiException.notFound("Driver");
         }
         locations.save(new DriverLocation(driverId, lat, lng));
+    }
+
+    /** Captains who closed the app without going offline stop sending GPS: take them offline. */
+    @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
+    @Transactional
+    public void takeSilentCaptainsOffline() {
+        int count = drivers.goOfflineIfSilentSince(Instant.now().minus(SILENT_OFFLINE_AFTER));
+        if (count > 0) {
+            log.info("Took {} silent captain(s) offline", count);
+        }
     }
 
     @Transactional(readOnly = true)

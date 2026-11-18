@@ -86,16 +86,22 @@ async function search(kind) {
   }
 }
 
+/** Pickup/drop pins are always created draggable with a drag handler; track() disables dragging during a ride. */
+function pin(kind, latLng) {
+  if (markers[kind]) {
+    markers[kind].setLatLng(latLng);
+    return;
+  }
+  markers[kind] = RxMap.placeMarker(map, null, kind, latLng, { draggable: true });
+  markers[kind].on('dragend', (ev) => {
+    const p = ev.target.getLatLng();
+    setPoint(kind, [p.lat, p.lng]);
+  });
+}
+
 function setPoint(kind, latLng, address) {
   trip[kind] = { lat: latLng[0], lng: latLng[1], address: address || null };
-  const isNew = !markers[kind];
-  markers[kind] = RxMap.placeMarker(map, markers[kind], kind, latLng, { draggable: true });
-  if (isNew) {
-    markers[kind].on('dragend', (ev) => {
-      const p = ev.target.getLatLng();
-      setPoint(kind, [p.lat, p.lng]);
-    });
-  }
+  pin(kind, latLng);
   const input = document.getElementById(`${kind}Input`);
   if (input) input.value = address || 'Finding address…';
   if (!address) reverseLookup(kind);
@@ -152,7 +158,7 @@ async function updateEstimate() {
           <div class="fare-big">${UI.money(est.fare)}</div>
         </div>
         <div class="small mt-2 ${none ? 'text-danger' : 'text-success'}"><i class="bi bi-person-check me-1"></i>${none
-          ? 'No captains nearby right now. Try again shortly.'
+          ? 'No captains nearby right now. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" id="recheckBtn">Check again</button>'
           : `${est.driversNearby} captain${est.driversNearby > 1 ? 's' : ''} nearby`}</div>
         ${est.roadRoute ? '' : '<div class="small text-muted"><i class="bi bi-info-circle me-1"></i>Approximate distance (road routing unavailable)</div>'}
       </div>
@@ -169,6 +175,7 @@ async function updateEstimate() {
         Book ride · ${UI.money(est.fare)}</button>`;
     box.querySelectorAll('input[name=pay]').forEach((r) => r.addEventListener('change', () => { paymentMethod = r.value; }));
     document.getElementById('bookBtn').addEventListener('click', book);
+    document.getElementById('recheckBtn')?.addEventListener('click', updateEstimate);
   } catch (e) {
     if (seq !== estimateSeq) return;
     routeLine = RxMap.drawRoute(map, routeLine, null);
@@ -211,8 +218,8 @@ function track(b) {
 }
 
 function showOnMap(b, fit) {
-  markers.pickup = RxMap.placeMarker(map, markers.pickup, 'pickup', [b.pickup.lat, b.pickup.lng]);
-  markers.drop = RxMap.placeMarker(map, markers.drop, 'drop', [b.drop.lat, b.drop.lng]);
+  pin('pickup', [b.pickup.lat, b.pickup.lng]);
+  pin('drop', [b.drop.lat, b.drop.lng]);
   if (fit && b.path) routeLine = RxMap.drawRoute(map, routeLine, b.path);
   if (b.driverLat != null) {
     markers.driver = RxMap.placeMarker(map, markers.driver, 'driver', [b.driverLat, b.driverLng]);
@@ -252,9 +259,9 @@ function driverCard(b) {
     <div class="d-flex gap-3 align-items-center p-3 rounded-4 bg-light mb-3">
       <div class="driver-avatar">${UI.esc(b.driver.name.charAt(0).toUpperCase())}</div>
       <div class="flex-grow-1 min-w-0">
-        <div class="fw-bold text-truncate">${UI.esc(b.driver.name)}</div>
+        <div class="fw-bold text-break">${UI.esc(b.driver.name)}</div>
         <div class="small">${UI.stars(b.driverRating)}</div>
-        <div class="small text-muted text-truncate">${UI.esc(v.make)} ${UI.esc(v.model)} · ${UI.esc(v.color)}</div>
+        <div class="small text-muted">${UI.esc(v.make)} ${UI.esc(v.model)} · ${UI.esc(v.color)}</div>
       </div>
       <div class="text-end">
         <span class="plate">${UI.esc(v.registrationNumber)}</span><br>

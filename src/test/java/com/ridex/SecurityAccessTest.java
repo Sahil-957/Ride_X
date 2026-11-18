@@ -1,12 +1,17 @@
 package com.ridex;
 
+import com.ridex.dto.AuthDtos.RegisterRequest;
+import com.ridex.enums.AccountStatus;
 import com.ridex.enums.Role;
 import com.ridex.security.AppUser;
+import com.ridex.service.AdminService;
+import com.ridex.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +30,10 @@ class SecurityAccessTest {
 
     @Autowired
     MockMvc mvc;
+    @Autowired
+    AuthService auth;
+    @Autowired
+    AdminService adminService;
 
     static RequestPostProcessor as(Role role) {
         return user(new AppUser(-1L, role.name().toLowerCase() + "@test.example.com", "x", role, true));
@@ -47,7 +56,26 @@ class SecurityAccessTest {
         mvc.perform(get("/api/passenger/bookings/active").with(as(Role.DRIVER))).andExpect(status().isForbidden());
         mvc.perform(get("/api/admin/stats").with(as(Role.DRIVER))).andExpect(status().isForbidden());
         mvc.perform(get("/api/passenger/bookings/active").with(as(Role.ADMIN))).andExpect(status().isForbidden());
-        mvc.perform(get("/admin/dashboard.html").with(as(Role.PASSENGER))).andExpect(status().isForbidden());
+        // a page for another role sends you home instead of showing an error page
+        mvc.perform(get("/admin/dashboard.html").with(as(Role.PASSENGER))).andExpect(redirectedUrl("/passenger/home.html"));
+    }
+
+    @Test
+    void blockingAUserEndsTheirOpenSession() throws Exception {
+        String email = "blocked-" + System.nanoTime() + "@test.example.com";
+        long id = auth.registerPassenger(new RegisterRequest("Blocked Rider", email,
+                "9" + String.valueOf(System.nanoTime()).substring(0, 9), "secret123", null)).id();
+        MockHttpSession session = (MockHttpSession) mvc.perform(post("/api/auth/login").with(csrf())
+                        .param("email", email).param("password", "secret123"))
+                .andExpect(status().isOk())
+                .andReturn().getRequest().getSession(false);
+        mvc.perform(get("/api/auth/me").session(session)).andExpect(status().isOk());
+
+        adminService.setUserStatus(id, AccountStatus.BLOCKED);
+
+        mvc.perform(get("/api/auth/me").session(session))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.detail").value("Your account has been blocked. Contact support."));
     }
 
     @Test

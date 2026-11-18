@@ -38,6 +38,17 @@ public class AppUser implements UserDetails, CredentialsContainer {
     @Override public String getUsername() { return email; }
     @Override public boolean isEnabled() { return active; }
 
+    /** Same user = same id, so the session registry groups all of a user's logins under one principal. */
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof AppUser user && id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
     /** Drop the hash after login so it never sits in the session. */
     @Override
     public void eraseCredentials() {

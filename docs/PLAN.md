@@ -43,6 +43,8 @@ this file describes the system as built. Update it when a decision changes.
 | Spring Boot 4.x | 3.x is out of free support | — |
 
 **Fare (defaults, in `application.yml`):** `max(₹30, ₹20 + ₹6/km + ₹0.5/min)`, platform commission 20%.
+Trip minutes = OSRM's time, but never faster than 22 km/h: public OSRM times free-flowing cars, which
+understates a bike taxi in city traffic. The straight-line fallback uses the same 22 km/h.
 
 **Payments:** no real gateway (not in the stack). Passenger picks Cash or UPI. Payment row is
 PENDING at booking, PAID when the driver completes the ride (confirms collection), VOID on cancel.
@@ -269,8 +271,11 @@ JSON everywhere. Errors use ProblemDetail: `{status, title, detail, errors[]}`.
 | GET | `/api/admin/bookings?status=` | latest 200 bookings |
 | GET | `/api/admin/live` | open/active rides with routes + online captains' positions (polled) |
 
-Pages: `/passenger/**`, `/driver/**`, `/admin/**` need the matching role; anonymous → `/login.html`.
-No admin sign-up: one admin is created at startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD` if none exists.
+Pages: `/passenger/**`, `/driver/**`, `/admin/**` need the matching role; anonymous → `/login.html`,
+wrong role → that user's own home page (APIs answer 403).
+No admin sign-up: one admin is created at startup from `ADMIN_EMAIL` / `ADMIN_PASSWORD`; its password is
+re-synced from `ADMIN_PASSWORD` on every start. Blocking a user expires their open sessions at once
+(Spring Security `SessionRegistry`): the next API call gets 401 "blocked".
 
 ## 5. Frontend pages
 
@@ -286,7 +291,7 @@ No admin sign-up: one admin is created at startup from `ADMIN_EMAIL` / `ADMIN_PA
 | `driver/earnings.html` | D | today/week/month cards, per-day bars, history |
 | `admin/dashboard.html` | A | stat cards, revenue chart (SVG), live active-rides map |
 | `admin/passengers.html` | A | search, block/unblock |
-| `admin/drivers.html` | A | pending queue, document viewer, approve/reject |
+| `admin/drivers.html` | A | pending queue, document viewer, approve/reject, block/unblock |
 | `admin/vehicles.html` | A | table, activate/deactivate |
 | `admin/bookings.html` | A | filter by status/date, detail panel |
 
@@ -317,7 +322,7 @@ Stop after every phase for approval. A phase is done when `mvnw verify` passes a
 | Two drivers accept the same ride | conditional UPDATE (0 rows → 409) + partial unique index + `@Version` + concurrency test |
 | Public OSRM: rate limits, no SLA | server-side, timeout, cache, Haversine × 1.3 fallback, swappable |
 | Nominatim policy (1 req/s, identify app, no autocomplete) | search on submit, server proxy with generic User-Agent, cache |
-| Ghost drivers (tab closed, still online) | dispatch ignores locations older than 2 min |
+| Ghost drivers (tab closed, still online) | dispatch ignores locations older than 2 min; a job takes captains with no GPS for 10 min offline (not mid-ride) |
 | CSRF with fetch() | Spring Security SPA CSRF config; `api.js` sends header |
 | Fare tampering | server recalculates from coordinates |
 | Unsafe uploads | 2 MB, type whitelist, admin-only download |

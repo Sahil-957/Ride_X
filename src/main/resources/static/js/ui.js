@@ -30,7 +30,18 @@ const UI = (() => {
 
   /** Renders the role-aware navbar into <nav id="app-nav"> and resolves with the current user. */
   async function nav() {
-    const me = await Api.get('/api/auth/me');
+    let me;
+    try {
+      me = await Api.get('/api/auth/me');
+    } catch (e) {
+      // 401 is already redirecting to login; anything else would leave a blank page, so say what happened
+      if (e.status !== 401) {
+        document.getElementById('app-nav').outerHTML = `<nav class="navbar navbar-dark rx-navbar"><div class="container-fluid px-3">${brand()}</div></nav>
+          <div class="alert alert-danger m-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>${esc(e.message)}
+            <a class="alert-link ms-1" href="">Try again</a></div>`;
+      }
+      throw e;
+    }
     const links = (NAV[me.role] || []).map(([href, icon, label]) => `
       <li class="nav-item"><a class="nav-link ${location.pathname === href ? 'active' : ''}" href="${href}">
         <i class="bi ${icon} me-1"></i>${label}</a></li>`).join('');
