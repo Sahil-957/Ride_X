@@ -1,6 +1,6 @@
 spring:
   application:
-    name: RideX
+    name: CabZen
   config:
     # `neon env pull` / `neon deploy` write DATABASE_URL* into .env (or .env.local if .env is missing).
     # Both are gitignored. On a server, set real environment variables instead.
@@ -37,7 +37,7 @@ server:
       cookie:
         same-site: lax
 
-ridex:
+cabzen:
   time-zone: Asia/Kolkata         # "today" for earnings and revenue
   fare:                           # fare = max(minimum, base + per-km * km + per-min * minutes)
     base: 20
@@ -52,7 +52,7 @@ ridex:
   routing:
     osrm-url: https://router.project-osrm.org
     nominatim-url: https://nominatim.openstreetmap.org
-    user-agent: RideX-college-project/1.0
+    user-agent: CabZen-college-project/1.0
     country-codes: in
   admin:
     email: ${ADMIN_EMAIL:}

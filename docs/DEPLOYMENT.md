@@ -1,6 +1,6 @@
-# Deploying RideX
+# Deploying CabZen
 
-RideX is one Spring Boot JAR that serves both the API and the web pages, so it needs a single
+CabZen is one Spring Boot JAR that serves both the API and the web pages, so it needs a single
 Java 21 web service plus the Neon database.
 
 ## Recommended: Railway (no Docker needed)
@@ -33,11 +33,11 @@ and run locally with `./mvnw verify` before you push.
 
 - `https://<your-domain>/` shows the landing page.
 - Log in with `ADMIN_EMAIL` and open the admin dashboard.
-- The Railway logs show `Schema "public" is up to date` and `Started RideXApplication`.
+- The Railway logs show `Schema "public" is up to date` and `Started CabZenApplication`.
 
 ## Other hosts
 
-Any host that can run `java -jar target/ridex-0.0.1-SNAPSHOT.jar` with Java 21 works the same way:
+Any host that can run `java -jar target/cabzen-0.0.1-SNAPSHOT.jar` with Java 21 works the same way:
 build with `./mvnw -DskipTests package` and set the variables above.
 Render, for example, needs a Dockerfile for Java apps. Docker is not part of the agreed stack, so agree on it before adding one.
 

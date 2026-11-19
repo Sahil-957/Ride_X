@@ -1,4 +1,4 @@
-# RideX
+# CabZen
 
 Bike-taxi booking web app (college project) with Passenger, Driver and Admin interfaces.
 **Read [docs/PLAN.md](docs/PLAN.md) before starting any phase**: it holds the architecture, ER diagram,
@@ -25,7 +25,7 @@ API surface, page list, roadmap and key decisions. Update it when a decision cha
 - New secret → reference it as `${NAME}` in `application.yml` and add `NAME=` (no value) to `.env.example`.
 
 ## Backend conventions
-- Package by layer under `com.ridex`: config, controller, service, repository, entity, dto, enums, security, exception.
+- Package by layer under `com.cabzen`: config, controller, service, repository, entity, dto, enums, security, exception.
 - Flyway owns the schema (`ddl-auto=validate`). Schema change = new `V{n}__description.sql`.
 - Enums: `@Enumerated(EnumType.STRING)` over `varchar` + CHECK. Timestamps: `timestamptz` / `Instant`.
   Money: `numeric(10,2)` / `BigDecimal`.
@@ -46,4 +46,4 @@ API surface, page list, roadmap and key decisions. Update it when a decision cha
 - Surefire only runs classes named `*Test` / `*Tests`; name new test classes that way.
 - Database tests run against the Neon branch in `.env.local` and must delete exactly the rows they create
   (see `RideFlowTest`), or use `@Transactional` rollback for single-thread tests. Keep tests on PostgreSQL.
-- Test data uses `example.com` / `ridex.local` hosts. Secret scanners flag realistic Neon-looking URLs.
+- Test data uses `example.com` / `cabzen.local` hosts. Secret scanners flag realistic Neon-looking URLs.

@@ -233,7 +233,7 @@ function announce(b) {
   const messages = {
     ACCEPTED: [`${b.driver?.name || 'A captain'} accepted your ride!`, 'success'],
     STARTED: ['Your ride has started. Enjoy the trip!', 'info'],
-    COMPLETED: ['You have arrived. Thanks for riding with RideX!', 'success'],
+    COMPLETED: ['You have arrived. Thanks for riding with CabZen!', 'success'],
     EXPIRED: ['No captain accepted in time. Please try again.', 'warning'],
     CANCELLED: ['This ride was cancelled.', 'info'],
     REQUESTED: ['Your captain had to cancel. Finding you another one…', 'warning'],

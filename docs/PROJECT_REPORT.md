@@ -1,10 +1,10 @@
-# RideX: Bike Taxi Booking System
+# CabZen: Bike Taxi Booking System
 
 **Project report**
 
 ## 1. Abstract
 
-RideX is a web application for booking bike taxis, modelled on services like Rapido. A passenger
+CabZen is a web application for booking bike taxis, modelled on services like Rapido. A passenger
 chooses a pickup and drop point on a map, sees the road distance and an upfront fare, and books a ride.
 Nearby verified captains (drivers) receive the request; the first to accept is assigned, and the
 passenger follows the ride live until drop-off, payment and rating. An admin console handles captain
@@ -128,7 +128,7 @@ GPS within the last 2 minutes, are within 5 km of the pickup, have no active rid
 Requests are sorted by distance to the pickup.
 
 ### 8.3 Race-free acceptance
-Two captains may tap **Accept** at the same moment. RideX lets the database decide:
+Two captains may tap **Accept** at the same moment. CabZen lets the database decide:
 ```sql
 UPDATE bookings SET driver_id = :driver, status = 'ACCEPTED', accepted_at = now(), version = version + 1
 WHERE id = :id AND status = 'REQUESTED'
@@ -195,7 +195,7 @@ Run `./mvnw verify` to repeat the automated suite (20 tests).
 
 ## 13. Conclusion
 
-RideX implements the complete bike-taxi workflow end to end: verified captains, map-based booking with
+CabZen implements the complete bike-taxi workflow end to end: verified captains, map-based booking with
 upfront fares, race-free dispatch, OTP-secured rides, payments and ratings, and an admin console with live
 monitoring. The automated tests prove the hardest part, concurrency, against the real database. The layered
 Spring Boot design keeps each concern (security, booking rules, routing, persistence) in one place, so the

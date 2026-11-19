@@ -25,7 +25,7 @@ const UI = (() => {
   const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
 
   function brand() {
-    return `<a class="navbar-brand rx-brand" href="/"><span class="rx-brand-mark"><i class="bi bi-scooter"></i></span><span>Ride<span class="x">X</span></span></a>`;
+    return `<a class="navbar-brand rx-brand" href="/"><span class="rx-brand-mark"><i class="bi bi-scooter"></i></span><span>Cab<span class="x">Zen</span></span></a>`;
   }
 
   /** Renders the role-aware navbar into <nav id="app-nav"> and resolves with the current user. */

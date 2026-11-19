@@ -1,4 +1,4 @@
-# RideX: bike taxi booking
+# CabZen: bike taxi booking
 
 A full-stack bike-taxi booking web app inspired by Rapido, built as a college project with
 **Java 21 · Spring Boot 4 · Spring Security · Spring Data JPA · Flyway · Neon PostgreSQL ·
@@ -10,6 +10,9 @@ every ride on a live map.
 
 > **New to the project?** Start with **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**: how it works,
 > how to run it, a full ride to try, how to test, and fixes for common problems.
+>
+> **Just want to know what the app does?** Read **[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)**: every step of a ride,
+> captain approval, the admin tools, the fare and the automatic timers, in plain language.
 
 | Passenger: live ride | Captain: ride on a phone | Admin dashboard |
 |---|---|---|
@@ -67,7 +70,7 @@ The college report is in **[docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md)**.
    or copy [.env.example](.env.example) to `.env.local` and paste both connection strings from the Neon console (**Connect**).
 2. **Admin account.** Add to `.env.local` (there is no admin sign-up page):
    ```properties
-   ADMIN_EMAIL=admin@ridex.local
+   ADMIN_EMAIL=admin@cabzen.local
    ADMIN_PASSWORD=<8+ characters>
    ```
    The admin is created on first start, and its password follows `ADMIN_PASSWORD` on every start
@@ -118,8 +121,8 @@ Beyond the automated suite, the UI was verified in headless Edge:
 ## Project structure
 
 ```
-src/main/java/com/ridex/
-  config/       AppProperties (ridex.* settings), DatabaseConfig (Neon URL → JDBC), AdminSeeder
+src/main/java/com/cabzen/
+  config/       AppProperties (cabzen.* settings), DatabaseConfig (Neon URL → JDBC), AdminSeeder
   security/     SecurityConfig (rules, JSON login, CSRF), AppUser, AppUserDetailsService
   controller/   Auth, Passenger, Driver, Admin, Geo REST controllers
   service/      BookingService (ride lifecycle, dispatch, expiry), DriverService, AdminService,
@@ -130,7 +133,7 @@ src/main/resources/
   application.yml               all settings; secrets only via environment variables
   db/migration/V1__init_schema.sql
   static/                       index/login/register + passenger/, driver/, admin/ pages (HTML + JS)
-docs/                           GETTING_STARTED.md, PLAN.md, PROJECT_REPORT.md, DEPLOYMENT.md, screenshots/
+docs/                           HOW_IT_WORKS.md, GETTING_STARTED.md, PLAN.md, PROJECT_REPORT.md, DEPLOYMENT.md, screenshots/
 ```
 
 ## Deployment

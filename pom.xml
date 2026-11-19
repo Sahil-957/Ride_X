@@ -8,11 +8,11 @@
 		<version>4.1.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ridex</groupId>
-	<artifactId>ridex</artifactId>
+	<groupId>com.cabzen</groupId>
+	<artifactId>cabzen</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>RideX</name>
-	<description>RideX - bike taxi booking web application</description>
+	<name>CabZen</name>
+	<description>CabZen - bike taxi booking web application</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>

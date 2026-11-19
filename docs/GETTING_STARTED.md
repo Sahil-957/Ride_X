@@ -1,10 +1,10 @@
-# Getting started with RideX
+# Getting started with CabZen
 
-This guide is for developers who are new to RideX. Follow it top to bottom and in about 30 minutes you will
+This guide is for developers who are new to CabZen. Follow it top to bottom and in about 30 minutes you will
 understand how the app works, have it running on your machine, have done a full ride yourself, and know how
 to test your changes.
 
-Contents: [1. What RideX is](#1-what-ridex-is) · [2. How the pieces fit](#2-how-the-pieces-fit) ·
+Contents: [1. What CabZen is](#1-what-cabzen-is) · [2. How the pieces fit](#2-how-the-pieces-fit) ·
 [3. Install the tools](#3-install-the-tools) · [4. Set up the database](#4-set-up-the-database-one-time) ·
 [5. Run the app](#5-run-the-app) · [6. Try a full ride](#6-try-a-full-ride) · [7. Run the tests](#7-run-the-tests) ·
 [8. Find your way around the code](#8-find-your-way-around-the-code) · [9. House rules](#9-house-rules) ·
@@ -12,9 +12,9 @@ Contents: [1. What RideX is](#1-what-ridex-is) · [2. How the pieces fit](#2-how
 
 ---
 
-## 1. What RideX is
+## 1. What CabZen is
 
-RideX is a bike-taxi booking website, like Rapido. It has three kinds of users:
+CabZen is a bike-taxi booking website, like Rapido. It has three kinds of users:
 
 | User | What they do |
 |---|---|
@@ -33,7 +33,7 @@ REQUESTED ──captain accepts──► ACCEPTED ──passenger's OTP──►
 
 ## 2. How the pieces fit
 
-RideX is **one Spring Boot app**. It serves the web pages *and* the JSON API, so there is no separate frontend
+CabZen is **one Spring Boot app**. It serves the web pages *and* the JSON API, so there is no separate frontend
 server to run.
 
 ```
@@ -51,15 +51,16 @@ server to run.
 **One click, followed through the code.** When a passenger presses **Book ride**:
 
 1. [passenger/home.js](../src/main/resources/static/passenger/home.js) `book()` calls `Api.post('/api/passenger/bookings', …)`.
-2. [PassengerController](../src/main/java/com/ridex/controller/PassengerController.java) `book()` receives it.
-3. [BookingService](../src/main/java/com/ridex/service/BookingService.java) `create()` checks the rules, gets the
+2. [PassengerController](../src/main/java/com/cabzen/controller/PassengerController.java) `book()` receives it.
+3. [BookingService](../src/main/java/com/cabzen/service/BookingService.java) `create()` checks the rules, gets the
    road route, works out the fare (the browser never sends a price), and saves the booking.
 4. The answer goes back as JSON, and the page shows "Finding a captain near you…".
 5. Every 4 seconds the page asks for the ride again, so it notices when a captain accepts.
 
 Most features work this same way: **page `.js` → controller → service → repository**.
 
-The full design (database diagram, every API endpoint, every page) is in [PLAN.md](PLAN.md).
+Every step of a ride, in plain language, is in [HOW_IT_WORKS.md](HOW_IT_WORKS.md). The full design (database diagram,
+every API endpoint, every page) is in [PLAN.md](PLAN.md).
 
 ## 3. Install the tools
 
@@ -85,7 +86,7 @@ cd Ride_X
 The app reads its database address and admin login from a file called **`.env.local`** in the project folder.
 This file holds secrets, so it is never committed (it is in `.gitignore`).
 
-1. **Get a database.** Either ask the project owner to invite you to the RideX Neon project, or create your own
+1. **Get a database.** Either ask the project owner to invite you to the CabZen Neon project, or create your own
    free Neon project. An empty database is fine: the app creates all tables itself on first start.
 2. **Make your own branch.** In the Neon console open **Branches → New branch**, name it `dev-yourname`.
    A branch is your private copy of the database. The tests write and delete rows, so keep them away from the
@@ -103,7 +104,7 @@ This file holds secrets, so it is never committed (it is in `.gitignore`).
    ```properties
    DATABASE_URL=postgresql://...-pooler.../neondb?sslmode=require    # pooling ON (not used by the app yet)
    DATABASE_URL_UNPOOLED=postgresql://.../neondb?sslmode=require     # pooling OFF, the one the app uses
-   ADMIN_EMAIL=admin@ridex.local
+   ADMIN_EMAIL=admin@cabzen.local
    ADMIN_PASSWORD=choose-8-or-more-characters
    ```
 
@@ -122,7 +123,7 @@ The first run downloads Maven and the libraries, which takes a few minutes. Late
 You are ready when the log shows:
 
 ```
-Started RideXApplication in ... seconds
+Started CabZenApplication in ... seconds
 ```
 
 Open **http://localhost:8080** and log in with your `ADMIN_EMAIL` / `ADMIN_PASSWORD`. You should land on the admin dashboard.
@@ -203,7 +204,7 @@ no data, and shows a readable message when something fails. Check it at phone wi
 ## 8. Find your way around the code
 
 ```
-src/main/java/com/ridex/
+src/main/java/com/cabzen/
   controller/   receives web requests            e.g. PassengerController, DriverController, AdminController
   service/      the rules of the app              BookingService (ride lifecycle), DriverService, AdminService, FareService
   repository/   database queries                  BookingRepository, DriverProfileRepository, ...
@@ -217,23 +218,23 @@ src/main/resources/
   db/migration/             database tables (Flyway SQL files)
   static/                   the website: index, login, register + passenger/, driver/, admin/ pages
     js/api.js  js/ui.js  js/map.js    shared helpers used by every page
-src/test/java/com/ridex/    tests
+src/test/java/com/cabzen/    tests
 ```
 
 **"I want to change…"**
 
 | I want to change… | Look here |
 |---|---|
-| fare numbers, commission, 5 km radius, 3-minute expiry | `ridex:` section of [application.yml](../src/main/resources/application.yml) |
-| the fare formula | [FareService.java](../src/main/java/com/ridex/service/FareService.java) |
-| what can happen to a ride (accept, start, cancel, …) | [BookingService.java](../src/main/java/com/ridex/service/BookingService.java) |
-| captain onboarding, online/offline, earnings | [DriverService.java](../src/main/java/com/ridex/service/DriverService.java) |
-| admin features | [AdminService.java](../src/main/java/com/ridex/service/AdminService.java) + `static/admin/` |
-| who may open which page or API | [SecurityConfig.java](../src/main/java/com/ridex/security/SecurityConfig.java) |
+| fare numbers, commission, 5 km radius, 3-minute expiry | `cabzen:` section of [application.yml](../src/main/resources/application.yml) |
+| the fare formula | [FareService.java](../src/main/java/com/cabzen/service/FareService.java) |
+| what can happen to a ride (accept, start, cancel, …) | [BookingService.java](../src/main/java/com/cabzen/service/BookingService.java) |
+| captain onboarding, online/offline, earnings | [DriverService.java](../src/main/java/com/cabzen/service/DriverService.java) |
+| admin features | [AdminService.java](../src/main/java/com/cabzen/service/AdminService.java) + `static/admin/` |
+| who may open which page or API | [SecurityConfig.java](../src/main/java/com/cabzen/security/SecurityConfig.java) |
 | a page | `static/<role>/<page>.html` and the `.js` file next to it |
 | how API calls, toasts or the navbar work | [js/api.js](../src/main/resources/static/js/api.js), [js/ui.js](../src/main/resources/static/js/ui.js) |
 | the map, the default city (Mumbai) | [js/map.js](../src/main/resources/static/js/map.js) |
-| routes and trip time | [OsrmRoutingService.java](../src/main/java/com/ridex/service/routing/OsrmRoutingService.java) |
+| routes and trip time | [OsrmRoutingService.java](../src/main/java/com/cabzen/service/routing/OsrmRoutingService.java) |
 | a database table or column | add a **new** file `db/migration/V2__what_changed.sql`, then update the entity |
 | an error message the user sees | the `ApiException` thrown in the service |
 
@@ -251,7 +252,7 @@ The short version of [CLAUDE.md](../CLAUDE.md), the project's working rules:
 - **The server decides.** Prices, permissions and ride status are always checked on the server, never trusted from the page.
 - **Errors are honest.** When something fails, throw `ApiException(HttpStatus.X, "message the user can act on")`.
 - **Secrets stay out of git.** Database URLs and passwords live only in `.env.local`. Test data uses
-  `example.com` or `ridex.local` emails.
+  `example.com` or `cabzen.local` emails.
 - **Ask before deleting data** in the shared database (DELETE, DROP, resetting a branch).
 - **Every page** shows a loading state, an empty state and an error state, and works on a phone.
 
@@ -282,10 +283,10 @@ The short version of [CLAUDE.md](../CLAUDE.md), the project's working rules:
 | **Booking / ride** | Same thing. One trip from pickup to drop. |
 | **OTP** | 4-digit code the passenger tells the captain to start the ride, so the right person is picked up. |
 | **Dispatch** | Sending a new ride request to all free captains within 5 km. The first one to accept gets it. |
-| **Commission** | RideX keeps 20% of each paid fare; the captain earns the rest. |
+| **Commission** | CabZen keeps 20% of each paid fare; the captain earns the rest. |
 | **Flyway migration** | A numbered SQL file that changes the database. They run once, in order, on startup. |
 | **Neon branch** | A copy of the database you can use without touching anyone else's data. |
 | **ProblemDetail** | The JSON shape of every error: `{status, title, detail, errors}`. |
 | **CSRF token** | A security code `js/api.js` sends with every change, so other websites can't act as you. |
 
-Next steps: read [PLAN.md](PLAN.md) for the full design and API list, and [DEPLOYMENT.md](DEPLOYMENT.md) to put RideX online.
+Next steps: read [PLAN.md](PLAN.md) for the full design and API list, and [DEPLOYMENT.md](DEPLOYMENT.md) to put CabZen online.

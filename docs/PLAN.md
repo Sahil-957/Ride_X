@@ -1,4 +1,4 @@
-# RideX – Architecture & Implementation Plan
+# CabZen – Architecture & Implementation Plan
 
 Source of truth for architecture, schema, API surface, pages and roadmap. All 10 phases are implemented;
 this file describes the system as built. Update it when a decision changes.
@@ -185,7 +185,7 @@ REQUESTED ──accept──► ACCEPTED ──start (OTP)──► STARTED ─�
 ├── CLAUDE.md  README.md  .env.example  .gitignore  pom.xml  mvnw  mvnw.cmd  .mvn/
 ├── docs/                      this plan; Phase 10 report material
 └── src/
-    ├── main/java/com/ridex/
+    ├── main/java/com/cabzen/
     │   ├── config/       AppProperties, DatabaseConfig (Neon URL → JDBC), AdminSeeder
     │   ├── security/     SecurityConfig (rules, JSON login/logout, CSRF), AppUser, AppUserDetailsService
     │   ├── controller/   Auth, Geo, Passenger, Driver, Admin controllers
@@ -204,7 +204,7 @@ REQUESTED ──accept──► ACCEPTED ──start (OTP)──► STARTED ─�
     │   ├── db/migration/ V1__init_schema.sql, ...
     │   └── static/       index/login/register.html, css/, js/ (api.js, ui.js, map.js),
     │                     passenger/, driver/, admin/  (page.html + page.js pairs)
-    └── test/java/com/ridex/
+    └── test/java/com/cabzen/
 ```
 
 ## 4. API endpoints
